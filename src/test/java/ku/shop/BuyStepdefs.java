@@ -1,5 +1,6 @@
 package ku.shop;
 
+import exceptions.InvalidValueException;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -10,6 +11,7 @@ public class BuyStepdefs {
 
     private ProductCatalog catalog;
     private Order order;
+    private InvalidValueException exception;
 
     @Given("the store is ready to service customers")
     public void the_store_is_ready_to_service_customers() {
@@ -23,9 +25,18 @@ public class BuyStepdefs {
     }
 
     @When("I buy {string} with quantity {int}")
-    public void i_buy_with_quantity(String name, int quantity) {
-        Product prod = catalog.getProduct(name);
-        order.addItem(prod, quantity);
+    public void i_buy_with_quantity(String name, int quantity) throws InvalidValueException {
+        try {
+            Product prod = catalog.getProduct(name);
+            order.addItem(prod, quantity);
+        } catch (InvalidValueException e) {
+            exception = e;
+        }
+    }
+
+    @Then("stock is not enough")
+    public void stock_is_not_enough() {
+        assertEquals("Stock doesn't have enough item", exception.getMessage());
     }
 
     @Then("total should be {float}")
